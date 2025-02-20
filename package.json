@@ -4,12 +4,16 @@
   "description": "Fullstack part8 GraphQL-server",
   "main": "library-backend.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon library-backend.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@apollo/server": "^4.11.3",
     "graphql": "^16.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
