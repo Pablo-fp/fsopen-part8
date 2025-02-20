@@ -1,0 +1,15 @@
+{
+  "name": "fsopen-part8",
+  "version": "1.0.0",
+  "description": "Fullstack part8 GraphQL-server",
+  "main": "library-backend.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^4.11.3",
+    "graphql": "^16.10.0"
+  }
+}
