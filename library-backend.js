@@ -117,6 +117,15 @@ type Book {
     allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
   }
+
+  type Mutation {
+    addBook(
+      title: String!,
+      author: String!,
+      published: Int!,
+      genres: [String!]!
+    ): Book
+  }
 `;
 
 const resolvers = {
@@ -140,6 +149,32 @@ const resolvers = {
         ...author,
         bookCount: books.filter((b) => b.author === author.name).length
       }))
+  },
+  Mutation: {
+    addBook: (root, args) => {
+      const newBook = {
+        title: args.title,
+        author: args.author,
+        published: args.published,
+        genres: args.genres,
+        id: Math.random().toString(36).substr(2, 9) // simple id generation
+      };
+
+      // Add new book to the books array
+      books = books.concat(newBook);
+
+      // Add new author if not already existing
+      if (!authors.find((author) => author.name === args.author)) {
+        const newAuthor = {
+          name: args.author,
+          id: Math.random().toString(36).substr(2, 9),
+          born: null
+        };
+        authors = authors.concat(newAuthor);
+      }
+
+      return newBook;
+    }
   }
 };
 
