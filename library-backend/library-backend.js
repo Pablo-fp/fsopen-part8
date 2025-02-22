@@ -185,7 +185,10 @@ const resolvers = {
         return null;
       }
       author.born = args.setBornTo;
-      return author;
+      return {
+        ...author,
+        bookCount: books.filter((b) => b.author === author.name).length
+      };
     }
   }
 };
