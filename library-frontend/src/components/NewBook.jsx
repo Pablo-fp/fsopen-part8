@@ -1,22 +1,58 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const NewBook = (props) => {
+const NewBook = () => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [published, setPublished] = useState('');
   const [genre, setGenre] = useState('');
   const [genres, setGenres] = useState([]);
+  const navigate = useNavigate();
 
   const submit = async (event) => {
     event.preventDefault();
 
-    console.log('add book...');
+    const publishedInt = parseInt(published);
+    const mutation = `
+      mutation {
+        addBook(
+          title: "${title}",
+          author: "${author}",
+          published: ${publishedInt},
+          genres: [${genres.map((g) => `"${g}"`).join(', ')}]
+        ) {
+          title
+          author
+          published
+          genres
+        }
+      }
+    `;
 
-    setTitle('');
-    setPublished('');
-    setAuthor('');
-    setGenres([]);
-    setGenre('');
+    try {
+      const response = await fetch('http://localhost:4000/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: mutation })
+      });
+      const result = await response.json();
+      if (result.errors) {
+        console.error(result.errors);
+      } else {
+        // Optionally, you can log the added book:
+        console.log('Added book:', result.data.addBook);
+        // Clear the form fields
+        setTitle('');
+        setAuthor('');
+        setPublished('');
+        setGenres([]);
+        setGenre('');
+        // Navigate to books view so it refetches the list.
+        navigate('/books');
+      }
+    } catch (error) {
+      console.error('Error adding book:', error);
+    }
   };
 
   const addGenre = () => {
