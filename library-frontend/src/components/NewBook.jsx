@@ -14,20 +14,22 @@ const NewBook = () => {
 
     const publishedInt = parseInt(published);
     const mutation = `
-      mutation {
-        addBook(
-          title: "${title}",
-          author: "${author}",
-          published: ${publishedInt},
-          genres: [${genres.map((g) => `"${g}"`).join(', ')}]
-        ) {
-          title
-          author
-          published
-          genres
-        }
+  mutation {
+    addBook(
+      title: "${title}",
+      author: "${author}",
+      published: ${publishedInt},
+      genres: [${genres.map((g) => `"${g}"`).join(', ')}]
+    ) {
+      title
+      published
+      genres
+      author {
+        name
       }
-    `;
+    }
+  }
+`;
 
     try {
       const response = await fetch('http://localhost:4000/', {
