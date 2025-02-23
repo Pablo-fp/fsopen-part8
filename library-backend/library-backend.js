@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const { ApolloServer } = require('@apollo/server');
 const { startStandaloneServer } = require('@apollo/server/standalone');
+const { GraphQLError } = require('graphql');
 
 const Book = require('./models/Book');
 const Author = require('./models/Author');
@@ -83,26 +84,56 @@ const resolvers = {
   },
   Mutation: {
     addBook: async (root, args) => {
-      let author = await Author.findOne({ name: args.author });
-      if (!author) {
-        author = new Author({ name: args.author, born: null });
-        await author.save();
+      try {
+        let author = await Author.findOne({ name: args.author });
+        if (!author) {
+          author = new Author({ name: args.author, born: null });
+          await author.save();
+        }
+        const book = new Book({
+          title: args.title,
+          published: args.published,
+          genres: args.genres,
+          author: author._id
+        });
+        await book.save();
+        return await Book.findById(book._id).populate('author');
+      } catch (error) {
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args
+          }
+        });
       }
-      const book = new Book({
-        title: args.title,
-        published: args.published,
-        genres: args.genres,
-        author: author._id
-      });
-      await book.save();
-      return await Book.findById(book._id).populate('author');
     },
     editAuthor: async (root, args) => {
-      const author = await Author.findOne({ name: args.name });
-      if (!author) return null;
-      author.born = args.setBornTo;
-      await author.save();
-      return author;
+      try {
+        const author = await Author.findOne({ name: args.name });
+        if (!author) {
+          throw new GraphQLError('Author not found', {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              invalidArgs: args
+            }
+          });
+        }
+        author.born = args.setBornTo;
+        await author.save();
+        return author;
+      } catch (error) {
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args
+          }
+        });
+      }
+    }
+  },
+  Author: {
+    bookCount: async (root) => {
+      return await Book.countDocuments({ author: root._id });
     }
   }
 };
