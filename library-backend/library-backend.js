@@ -33,7 +33,7 @@ type Book {
   type Query {
     bookCount: Int
     authorCount: Int
-    allBooks: [Book!]!
+    allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
   }
 
@@ -55,14 +55,30 @@ const resolvers = {
   Query: {
     bookCount: async () => (await Book.find({})).length,
     authorCount: async () => (await Author.find({})).length,
-    allBooks: async () => {
-      // For now we ignore filtering and assume it returns all books populated with their author
-      return await Book.find({}).populate('author');
+    allBooks: async (root, args) => {
+      const filter = {};
+      if (args.author) {
+        const author = await Author.findOne({ name: args.author });
+        if (author) {
+          filter.author = author._id;
+        } else {
+          return [];
+        }
+      }
+      if (args.genre) {
+        filter.genres = { $in: [args.genre] };
+      }
+      return await Book.find(filter).populate('author');
     },
     allAuthors: async () => {
-      // bookCount here is not computed properly for now
       const authors = await Author.find({});
-      return authors.map((a) => ({ ...a.toObject(), bookCount: 0 }));
+      const books = await Book.find({});
+      return authors.map((author) => ({
+        ...author.toObject(),
+        bookCount: books.filter(
+          (book) => String(book.author) === String(author._id)
+        ).length
+      }));
     }
   },
   Mutation: {
@@ -81,9 +97,12 @@ const resolvers = {
       await book.save();
       return await Book.findById(book._id).populate('author');
     },
-    editAuthor: () => {
-      // Not implemented for now.
-      return null;
+    editAuthor: async (root, args) => {
+      const author = await Author.findOne({ name: args.name });
+      if (!author) return null;
+      author.born = args.setBornTo;
+      await author.save();
+      return author;
     }
   }
 };
