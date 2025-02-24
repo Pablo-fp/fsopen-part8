@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../AuthContext.jsx';
 
 const Authors = () => {
+  const { token } = useContext(AuthContext);
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState('');
   const [birthYear, setBirthYear] = useState('');
@@ -48,7 +50,10 @@ const Authors = () => {
     try {
       const response = await fetch('http://localhost:4000/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({ query: mutation })
       });
       const result = await response.json();
