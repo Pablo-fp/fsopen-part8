@@ -5,7 +5,7 @@ const Books = () => {
   const [selectedGenre, setSelectedGenre] = useState('');
   const [allGenres, setAllGenres] = useState([]);
 
-  // Fetch unique genres just once on mount
+  // Fetch unique genres just once on mount (updated each time a new book is added)
   useEffect(() => {
     const query = `
       query {
