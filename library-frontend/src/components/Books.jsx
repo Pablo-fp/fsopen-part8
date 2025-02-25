@@ -3,45 +3,64 @@ import { useState, useEffect } from 'react';
 const Books = () => {
   const [books, setBooks] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState('');
+  const [allGenres, setAllGenres] = useState([]);
 
+  // Fetch unique genres just once on mount
   useEffect(() => {
+    const query = `
+      query {
+        allBooks {
+          genres
+        }
+      }
+    `;
     fetch('http://localhost:4000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `
-          query {
-            allBooks {
-              title
-              published
-              author {
-                name
-              }
-              genres
-            }
-          }
-        `
+      body: JSON.stringify({ query })
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        const genres = Array.from(
+          new Set(result.data.allBooks.flatMap((book) => book.genres))
+        );
+        setAllGenres(genres);
       })
+      .catch((error) => console.error(error));
+  }, []);
+
+  // Fetch books based on the selected genre using GraphQL query
+  useEffect(() => {
+    const genreFilter = selectedGenre ? `(genre: "${selectedGenre}")` : '';
+    const query = `
+      query {
+        allBooks${genreFilter} {
+          title
+          published
+          author {
+            name
+          }
+          genres
+        }
+      }
+    `;
+
+    fetch('http://localhost:4000/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
     })
       .then((res) => res.json())
       .then((result) => {
         setBooks(result.data.allBooks);
       })
       .catch((error) => console.error(error));
-  }, []);
-
-  // Filter books based on selected genre
-  const filteredBooks = selectedGenre
-    ? books.filter((b) => b.genres.includes(selectedGenre))
-    : books;
-
-  // Get unique genres from books
-  const genres = Array.from(new Set(books.flatMap((book) => book.genres)));
+  }, [selectedGenre]);
 
   return (
     <div>
       <h2>books</h2>
-      {filteredBooks.length === 0 ? (
+      {books.length === 0 ? (
         <div>Loading...</div>
       ) : (
         <table>
@@ -51,7 +70,7 @@ const Books = () => {
               <th>author</th>
               <th>published</th>
             </tr>
-            {filteredBooks.map((b) => (
+            {books.map((b) => (
               <tr key={b.title}>
                 <td>{b.title}</td>
                 <td>{b.author.name}</td>
@@ -64,12 +83,12 @@ const Books = () => {
       <nav style={{ marginTop: '1rem' }}>
         <span>Filter by genre: </span>
         <button onClick={() => setSelectedGenre('')}>all genres</button>
-        {genres.map((genre) => (
+        {allGenres.map((genre) => (
           <button
             key={genre}
             onClick={() => setSelectedGenre(genre)}
             style={{
-              marginLeft: '0.5rem',
+              marginLeft: '.5rem',
               backgroundColor: selectedGenre === genre ? '#ddd' : ''
             }}
           >
