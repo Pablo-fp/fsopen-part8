@@ -4,6 +4,7 @@ import Authors from './components/Authors';
 import Books from './components/Books';
 import NewBook from './components/NewBook';
 import Login from './components/Login';
+import Recommendation from './components/Recommendation';
 import { AuthContext } from './AuthContext.jsx';
 
 const App = () => {
@@ -24,6 +25,9 @@ const App = () => {
               <Link to="/add">
                 <button>add book</button>
               </Link>
+              <Link to="/recommend">
+                <button>recommend</button>
+              </Link>
               <button onClick={logout}>logout</button>
             </>
           ) : (
@@ -38,6 +42,7 @@ const App = () => {
           <Route path="/books" element={<Books />} />
           <Route path="/add" element={<NewBook />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/recommend" element={<Recommendation />} />
           <Route path="/" element={<Authors />} />
         </Routes>
       </div>
