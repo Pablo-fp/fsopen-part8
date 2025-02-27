@@ -72,11 +72,10 @@ const start = async () => {
             auth.substring(7),
             process.env.JWT_SECRET
           );
-          const currentUser = await User.findById(decodedToken.id).populate(
-            'friends'
-          );
+          const currentUser = await User.findById(decodedToken.id); // Removed .populate('friends')
           return { currentUser };
         }
+        return {};
       }
     })
   );
