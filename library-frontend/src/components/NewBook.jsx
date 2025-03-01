@@ -2,6 +2,8 @@ import { useContext } from 'react';
 import { AuthContext } from '../AuthContext.jsx';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@apollo/client';
+import { ADD_BOOK, ALL_BOOKS } from '../queries.js';
 
 const NewBook = () => {
   const { token } = useContext(AuthContext);
@@ -12,55 +14,27 @@ const NewBook = () => {
   const [genres, setGenres] = useState([]);
   const navigate = useNavigate();
 
+  const [addBook] = useMutation(ADD_BOOK, {
+    refetchQueries: [{ query: ALL_BOOKS }],
+    onError: (error) => {
+      console.error(error);
+    }
+  });
+
   const submit = async (event) => {
     event.preventDefault();
 
     const publishedInt = parseInt(published);
-    const mutation = `
-  mutation {
-    addBook(
-      title: "${title}",
-      author: "${author}",
-      published: ${publishedInt},
-      genres: [${genres.map((g) => `"${g}"`).join(', ')}]
-    ) {
-      title
-      published
-      genres
-      author {
-        name
-      }
-    }
-  }
-`;
+    addBook({
+      variables: { title, author, published: publishedInt, genres }
+    });
 
-    try {
-      const response = await fetch('http://localhost:4000/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
-        body: JSON.stringify({ query: mutation })
-      });
-      const result = await response.json();
-      if (result.errors) {
-        console.error(result.errors);
-      } else {
-        // Optionally, you can log the added book:
-        console.log('Added book:', result.data.addBook);
-        // Clear the form fields
-        setTitle('');
-        setAuthor('');
-        setPublished('');
-        setGenres([]);
-        setGenre('');
-        // Navigate to books view so it refetches the list.
-        navigate('/books');
-      }
-    } catch (error) {
-      console.error('Error adding book:', error);
-    }
+    setTitle('');
+    setAuthor('');
+    setPublished('');
+    setGenres([]);
+    setGenre('');
+    navigate('/books');
   };
 
   const addGenre = () => {

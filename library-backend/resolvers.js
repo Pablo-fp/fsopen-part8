@@ -5,7 +5,7 @@ const Book = require('./models/Book');
 const Author = require('./models/Author');
 const User = require('./models/User');
 
-const pubsub = new PubSub();
+const pubsub = new (PubSub.default || PubSub)();
 
 const resolvers = {
   Query: {
@@ -63,7 +63,9 @@ const resolvers = {
           author: author._id
         });
         await book.save();
-        return await Book.findById(book._id).populate('author');
+        const populatedBook = await Book.findById(book._id).populate('author');
+        pubsub.publish('BOOK_ADDED', { bookAdded: populatedBook });
+        return populatedBook;
       } catch (error) {
         throw new GraphQLError(error.message, {
           extensions: {

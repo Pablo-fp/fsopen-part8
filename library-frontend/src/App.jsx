@@ -1,14 +1,31 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useContext } from 'react';
+import { useSubscription } from '@apollo/client';
 import Authors from './components/Authors';
 import Books from './components/Books';
 import NewBook from './components/NewBook';
 import Login from './components/Login';
 import Recommendation from './components/Recommendation';
 import { AuthContext } from './AuthContext.jsx';
+import { BOOK_ADDED } from './queries.js';
 
 const App = () => {
   const { token, logout } = useContext(AuthContext);
+
+  useSubscription(BOOK_ADDED, {
+    skip: !token,
+    onSubscriptionData: ({ subscriptionData }) => {
+      const addedBook = subscriptionData?.data?.bookAdded;
+      if (addedBook) {
+        window.alert(
+          `New book added: ${addedBook.title} by ${addedBook.author.name}`
+        );
+      }
+    },
+    onError: (error) => {
+      console.error('Subscription error:', error);
+    }
+  });
 
   return (
     <BrowserRouter>
